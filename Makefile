@@ -29,8 +29,15 @@ $(TARGET).elf: $(OBJS)
 	@mkdir -p $(OUT_DIR)
 	@$(CXX) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
 pkg:
-	@rm -f ps3/ps3_main.o $(OUT_DIR)/*
+	@rm -f ps3/ps3_main.o pkg/PARAM.SFO $(OUT_DIR)/*
 	@$(MAKE) $(TARGET).pkg
 	@rm -f $(TARGET).gnpdrm.pkg $(TARGET).elf $(TARGET).self $(TARGET).fake.self EBOOT.BIN
 	@python3 -c 'import ftplib, os; f=ftplib.FTP(); f.connect("192.168.100.82", 21, timeout=3); f.login("anonymous","anonymous"); f.cwd("/dev_hdd0/packages"); fp=open("$(TARGET).pkg","rb"); f.storbinary("STOR "+os.path.basename("$(TARGET).pkg"), fp); fp.close(); f.quit(); print("[FTP] OK: PKG enviado")' || echo "[FTP] PS3 no responde, omitiendo subida."
 .PHONY: pkg
+
+# --- Regla para compilar el Mapeador independiente ---
+mapper:
+	$(CXX) -o ps3/ps3_mapper.o -c ps3/ps3_mapper.cpp $(CXXFLAGS)
+	$(CXX) -o ps3/ps3_mapper.elf ps3/ps3_mapper.o $(LDFLAGS) $(LIBS)
+	$(SELF) ps3/ps3_mapper.elf ps3/ps3_mapper.self
+	@echo "Mapeador compilado en ps3/ps3_mapper.self"

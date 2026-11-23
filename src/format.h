@@ -1623,7 +1623,7 @@ namespace TR {
         };
 
         operator float() const {
-            return value / 65536.0f;  // 16.16 fixed point, usa value (swapeado en PC, H/L leidos en SAT)
+            return int32(value) / 65536.0f;  // 16.16 fixed point, usa value (swapeado en PC, H/L leidos en SAT)
         }
     };
 

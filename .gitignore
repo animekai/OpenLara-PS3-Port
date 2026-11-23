@@ -1,29 +1,14 @@
-# Ignorar todo lo que sea build o basura
-build/
-bin/
 out/
-pkg_data/
-game_data/
 *.o
 *.elf
 *.self
-*.bin
-*.tmp
-*.log
-
-# Ignorar assets (aunque ya los borraste)
+*.pkg
+EBOOT.BIN
+PARAM.SFO
+pkg/USRDIR/
+data/
 *.PHD
 *.PSX
+*.SAT
 *.ogg
-*.RPL
-*.PNG
-*.BMP
-
-# Ignorar backups
-backup_psx/
-backup_video/
-backups_funcionales/
-
-# Ignorar archivos raros que se generaron
-players[0]
-soundsMap
+*.PNG.bak
