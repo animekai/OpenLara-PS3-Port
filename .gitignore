@@ -21,3 +21,10 @@ build/
 *.self
 *.elf
 *.o
+backup_video/
+bin/
+build/
+pkg/USRDIR/
+*.tmp
+players*
+soundsMap*
