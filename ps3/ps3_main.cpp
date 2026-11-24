@@ -64,6 +64,7 @@ void inputUpdate() {
     Input::setJoyDown(0, jkSelect, pd.BTN_SELECT ? 1 : 0); Input::setJoyDown(0, jkStart, pd.BTN_START ? 1 : 0);
     bool hasAna = (pd.len >= 8) && !(pd.ANA_L_H == 0 && pd.ANA_L_V == 0 && pd.ANA_R_H == 0 && pd.ANA_R_V == 0); joyL = hasAna ? vec2(padAxis(pd.ANA_L_H), padAxis(pd.ANA_L_V)) : vec2(0.0f); joyR = hasAna ? vec2(padAxis(pd.ANA_R_H), padAxis(pd.ANA_R_V)) : vec2(0.0f);
     Input::setJoyPos(0, jkL, joyL); Input::setJoyPos(0, jkR, joyR);
+    if (pd.BTN_L3 && pd.BTN_R3) ps3LogEnable();
     if (pd.BTN_SELECT && pd.BTN_START) Core::isQuit = true;
 }
 void chkFile(const char *p) { struct stat s; ps3Log(stat(p, &s) == 0 ? "[FILE] OK %s (%ldB)" : "[FILE] FALTA %s", p, (long)s.st_size); }

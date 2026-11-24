@@ -766,6 +766,7 @@ namespace Sound {
         }
 
         virtual int decode(Frame *frames, int count) {
+            if (!ogg) return 0;
             PROFILE_CPU_TIMING(stats.ogg);
             int i = 0;
             int bytes = count * sizeof(Frame);
@@ -797,17 +798,21 @@ namespace Sound {
             data = new uint8[stream->size];
             stream->raw(data, stream->size);
 
-            alloc.alloc_buffer_length_in_bytes = 256 * 1024;
+            alloc.alloc_buffer_length_in_bytes = 1024 * 1024;
             alloc.alloc_buffer = new char[alloc.alloc_buffer_length_in_bytes];
             ogg = stb_vorbis_open_memory(data, stream->size, NULL, &alloc);
-            ASSERT(ogg);
-            stb_vorbis_info info = stb_vorbis_get_info(ogg);
-            this->channels = info.channels;
-            this->freq     = info.sample_rate;
+            if (ogg) {
+                stb_vorbis_info info = stb_vorbis_get_info(ogg);
+                this->channels = info.channels;
+                this->freq     = info.sample_rate;
+            } else {
+                this->channels = 2;
+                this->freq     = 44100;
+            }
         }
 
         virtual ~OGG() {
-            stb_vorbis_close(ogg);
+            if (ogg) stb_vorbis_close(ogg);
             delete[] alloc.alloc_buffer;
             delete[] data;
         }
@@ -888,8 +893,7 @@ namespace Sound {
             this->pos = pos ? *pos : vec3(0.0f);
 
         #ifndef NO_SOUND
-            uint32 fourcc;
-            stream->read(fourcc);
+            uint32 fourcc = stream->readLE32();
             if (fourcc == FOURCC("RIFF")) // wav
             {
                 struct {
@@ -903,11 +907,16 @@ namespace Sound {
 
                 stream->seek(8);
                 while (stream->pos < stream->size) {
-                    uint32 type, size;
-                    stream->read(type);
-                    stream->read(size);
+                    uint32 type = stream->readLE32();
+                    uint32 size = stream->readLE32();
                     if (type == FOURCC("fmt ")) {
                         stream->raw(&waveFmt, sizeof(waveFmt));
+                        waveFmt.format        = swap16(waveFmt.format);
+                        waveFmt.channels      = swap16(waveFmt.channels);
+                        waveFmt.samplesPerSec = swap32(waveFmt.samplesPerSec);
+                        waveFmt.bytesPerSec   = swap32(waveFmt.bytesPerSec);
+                        waveFmt.block         = swap16(waveFmt.block);
+                        waveFmt.sampleBits    = swap16(waveFmt.sampleBits);
                         stream->seek(size - sizeof(waveFmt));
                     } else if (type == FOURCC("data")) {
                         if (waveFmt.format == 1) decoder = new PCM(stream, waveFmt.channels, waveFmt.samplesPerSec, size, waveFmt.sampleBits);

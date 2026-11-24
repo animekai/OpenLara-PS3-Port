@@ -2006,7 +2006,11 @@ namespace TR {
 #endif
         } cmd;
         struct {
+#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
+            int16 slantZ:8, slantX:8;
+#else
             int16 slantX:8, slantZ:8;
+#endif
         };
         struct {
             uint16 a:4, b:4, c:4, d:4;
@@ -2795,7 +2799,11 @@ namespace TR {
             int16   speed;  // for sink (underwater current)
         };
         union {
+#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
+            struct { uint16 :2, :5, once:1, :8; };
+#else
             struct { uint16 :8, once:1, :5, :2; };
+#endif
             uint16 boxIndex;
         } flags;
     };
@@ -2846,9 +2854,15 @@ namespace TR {
 
         int16   floor; // Height value in global units
         union {
+#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
+            struct {
+                uint16 blockable:1, block:1, index:14;    // Index into Overlaps[].
+            };
+#else
             struct {
                 uint16 index:14, block:1, blockable:1;    // Index into Overlaps[].
             };
+#endif
             uint16 value;
         } overlap;
 
@@ -4746,7 +4760,7 @@ namespace TR {
             swap16Arr(soundsMap, 256);
             swap32Arr(soundOffsets, soundOffsetsCount);
             for (int z = 0; z < 2; z++) { swap16Arr(zones[z].ground1, boxesCount); swap16Arr(zones[z].ground2, boxesCount); swap16Arr(zones[z].fly, boxesCount); }
-            swap32Arr(cameras, camerasCount * 4);
+            for (int c = 0; c < camerasCount; c++) { cameras[c].x = swap32(cameras[c].x); cameras[c].y = swap32(cameras[c].y); cameras[c].z = swap32(cameras[c].z); cameras[c].room = swap16(cameras[c].room); cameras[c].flags.boxIndex = swap16(cameras[c].flags.boxIndex); }
             swap16Arr(cameraFrames, cameraFramesCount * 8);
             for (int r = 0; r < roomsCount; r++) {
                 Room &rm = rooms[r];

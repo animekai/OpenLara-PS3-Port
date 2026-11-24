@@ -2133,7 +2133,7 @@ struct Lara : Character {
             TR::FloorData::TriggerCommand &cmd = info.trigCmd[cmdIndex++];
 
             switch (cmd.action) {
-                case TR::Action::ACTIVATE : {
+                case TR::Action::ACTIVATE : { ps3Log("[TRIG] ACTIVATE entity=%d", cmd.args);
                     if (cmd.args >= level->entitiesBaseCount) {
                         break;
                     }
@@ -2161,7 +2161,7 @@ struct Lara : Character {
                     controller->activate();
                     break;
                 }
-                case TR::Action::CAMERA_SWITCH : {
+                case TR::Action::CAMERA_SWITCH : { ps3Log("[TRIG] CAM_SWITCH cam=%d", cmd.args);
                     TR::FloorData::TriggerCommand &cam = info.trigCmd[cmdIndex++];
 
                     if (!level->cameras[cmd.args].flags.once) {

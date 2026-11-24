@@ -249,7 +249,7 @@ namespace GAPI {
 
     void resize() {
         delete[] swDepth;
-        //swDepth = new DepthSW[Core::width * Core::height];
+        swDepth = new DepthSW[Core::width * Core::height];
     }
 
     inline mat4::ProjRange getProjRange() {
@@ -269,6 +269,8 @@ namespace GAPI {
     }
 
     bool beginFrame() {
+        if (!swDepth && Core::width > 0 && Core::height > 0) swDepth = new DepthSW[Core::width * Core::height];
+        if (swDepth) memset(swDepth, 0xFF, Core::width * Core::height * sizeof(DepthSW));
         return true;
     }
 
@@ -407,7 +409,7 @@ namespace GAPI {
 
             DepthSW z = DepthSW(uint32(S.z) >> 16);
 
-            {//if (swDepth[x] >= z) {
+            if (!swDepth || swDepth[x] >= z) {
             #ifdef DITHER_FILTER
                 const int *dithX = dithY + (x & 1);
 
@@ -424,7 +426,7 @@ namespace GAPI {
                     index = swLightmap[((S.l >> (16 + 3)) << 8) + index];
 
                     swColor[x] = swPalette[index];
-                    //swDepth[x] = z;
+                    if (swDepth) swDepth[x] = z;
                 }
             }
 
