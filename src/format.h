@@ -2067,12 +2067,20 @@ namespace TR {
     };
 
     union Overlap {
+#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
+        struct { uint16 end:1, boxIndex:15; };
+#else
         struct { uint16 boxIndex:15, end:1; };
+#endif
         uint16 value;
     };
 
     struct Flags {
+#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
+        uint16 :2, active:5, once:1, :8;
+#else
         uint16 :8, once:1, active:5, :2;
+#endif
     };
 
     // internal mesh structure
