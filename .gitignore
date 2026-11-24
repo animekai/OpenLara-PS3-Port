@@ -12,3 +12,12 @@ data/
 *.SAT
 *.ogg
 *.PNG.bak
+game_data/
+data_pkg/
+pkg/USRDIR/data/
+out/
+build/
+*.pkg
+*.self
+*.elf
+*.o
