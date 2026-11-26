@@ -1696,7 +1696,11 @@ namespace TR {
 
     struct Face {
         union {
+#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
+            struct { uint16 doubleSided:1, texture:15; };
+#else
             struct { uint16 texture:15, doubleSided:1; };
+#endif
             uint16 value;
         } flags;
 
@@ -6175,7 +6179,11 @@ namespace TR {
                 case VER_TR3_PC : {
                     struct {
                         uint16  attribute;
+#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
+                        uint16  :2, tile:14;
+#else
                         uint16  tile:14, :2;
+#endif
                         uint8   xh0, x0, yh0, y0;
                         uint8   xh1, x1, yh1, y1;
                         uint8   xh2, x2, yh2, y2;
@@ -6191,7 +6199,11 @@ namespace TR {
                 case VER_TR5_PC : {
                     struct {
                         uint16  attribute;
+#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
+                        uint16  :2, tile:14;
+#else
                         uint16  tile:14, :2;
+#endif
                         uint16  flags;
                         uint8   xh0, x0, yh0, y0;
                         uint8   xh1, x1, yh1, y1;

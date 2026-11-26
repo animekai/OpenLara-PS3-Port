@@ -33,9 +33,11 @@ void gcmInitVideo() {
 }
 void gcmPresent(const uint32 *pix) {
     memcpy(gcmBuf[gcmCur], pix, WIN_W * WIN_H * 4);
+    gcmResetFlipStatus();
     gcmSetFlip(gcmCtx, gcmCur); rsxFlushBuffer(gcmCtx);
-    while (gcmGetFlipStatus() != 0) usleep(200);
-    gcmResetFlipStatus(); gcmCur ^= 1;
+    int wait = 0;
+    while (gcmGetFlipStatus() != 0) { sysUtilCheckCallback(); usleep(200); if (++wait > 5000) break; }
+    gcmCur ^= 1;
 }
 #define SND_FRAME_SIZE 4
 #define SND_FRAMES 1024
@@ -51,7 +53,7 @@ vec2 joyL, joyR; uint32 joyBtns = 0;
 float padAxis(uint8_t v) { int d = int(v) - 128; if (d > -32 && d < 32) return 0.0f; float f = d / 127.0f; return f < -1.0f ? -1.0f : (f > 1.0f ? 1.0f : f); }
 void inputInit() { ps3SetStage("INPUT_INIT"); joyL = joyR = vec2(0); ioPadInit(7); ps3Log("[INPUT] ioPadInit OK"); }
 void inputUpdate() {
-    sysUtilCheckCallback(); padInfo pi; static padData pd; padData tmp; ioPadGetInfo(&pi);
+    ps3SetStage("INPUT_UPDATE"); sysUtilCheckCallback(); padInfo pi; static padData pd; padData tmp; ioPadGetInfo(&pi);
     if (!pi.status[0]) return;
     if (ioPadGetData(0, &tmp) == 0 && tmp.len > 0) pd = tmp;
     joyBtns = (uint32(pd.button[2]) << 8) | uint32(pd.button[3]);
@@ -83,6 +85,7 @@ void inputUpdate() {
             vec3 dst = (pd.BTN_L2 && pd.BTN_R2) ? vec3(51835.0f, 7680.0f, 57687.0f) : vec3(48229.0f, 4608.0f, 78420.0f);
             float ang = (pd.BTN_L2 && pd.BTN_R2) ? (-PI * 0.5f) : (270.0f * DEG2RAD);
             int r = l->getRoomByPos(dst);
+            ps3Log("[TP-DBG] dst=(%.0f,%.0f,%.0f) getRoomByPos=%d", dst.x, dst.y, dst.z, r);
             if (r == TR::NO_ROOM) r = (pd.BTN_L2 && pd.BTN_R2) ? 14 : 33;
             l->reset(r, dst, ang);
             ps3Log("[TP] OK room=%d pos=(%.0f,%.0f,%.0f)", l->getRoomIndex(), l->pos.x, l->pos.y, l->pos.z);
@@ -92,7 +95,7 @@ void inputUpdate() {
 }
 void chkFile(const char *p) { struct stat s; ps3Log(stat(p, &s) == 0 ? "[FILE] OK %s (%ldB)" : "[FILE] FALTA %s", p, (long)s.st_size); }
 int main(int argc, char **argv) {
-    (void)argc; (void)argv; ps3LogInit(); ps3SetStage("SYSMODULE");
+    (void)argc; (void)argv; ps3LogInit(); ps3HeartbeatStart(); ps3SetStage("SYSMODULE");
     ps3Log("[SYS] PNGDEC=0x%x FS=0x%x", sysModuleLoad(SYSMODULE_PNGDEC), sysModuleLoad(SYSMODULE_FS));
     gcmInitVideo(); ps3SetStage("SDL_AUDIO"); SDL_Init(SDL_INIT_AUDIO);
     uint32 *pix = new uint32[WIN_W * WIN_H]; memset(pix, 0, WIN_W * WIN_H * 4);
@@ -108,6 +111,7 @@ int main(int argc, char **argv) {
     while (!Core::isQuit) {
         inputUpdate();
         if (Game::update()) {
+            ps3SetStage("GAME_RENDER");
             Game::render(); gcmPresent(pix);
             if (++fc == 1 || fc % 30 == 0) {
                 Lara *lara = Game::level ? Game::level->players[0] : NULL;
