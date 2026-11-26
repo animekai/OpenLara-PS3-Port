@@ -237,6 +237,7 @@ namespace Sound {
                         frames[2].L = prevFrame.L + dL * 3 / 4;               // 0.75 L
                         frames[2].R = prevFrame.R + dR * 3 / 4;               // 0.75 R
                     } else {
+                ps3Log("[AUDIO-TRK] OGG FALLO size=%d", stream->size);
                         frames[0].L = frames[0].R = prevFrame.L + dL / 4;     // 0.25 LR
                         frames[1].L = frames[1].R = prevFrame.L + dL / 2;     // 0.50 LR
                         frames[2].L = frames[2].R = prevFrame.L + dL * 3 / 4; // 0.75 LR
@@ -803,6 +804,7 @@ namespace Sound {
             ogg = stb_vorbis_open_memory(data, stream->size, NULL, &alloc);
             if (ogg) {
                 stb_vorbis_info info = stb_vorbis_get_info(ogg);
+                ps3Log("[AUDIO-TRK] OGG OK ch=%d freq=%d size=%d", info.channels, info.sample_rate, stream->size);
                 this->channels = info.channels;
                 this->freq     = info.sample_rate;
             } else {

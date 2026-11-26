@@ -925,8 +925,10 @@ struct Level : IGame {
         if (track == TR::LEVEL_INFO[level.id].track)
             flags |= Sound::LOOP;
 
+        ps3Log("[AUDIO-TRK] playTrack=%d", track);
         waitTrack = true;
         TR::getGameTrack(level.version, track, playAsync, new TrackRequest(this, flags));
+        ps3Log("[AUDIO-TRK] playTrack=%d OK", track);
 
         UI::showSubs(TR::getSubs(level.version, track));
     }
@@ -2300,10 +2302,15 @@ struct Level : IGame {
 
                 updateEffect();
 
+                static int postLeverFrames = 0;
+                bool doorActive = (level.entitiesCount > 9 && level.entities[9].controller && ((Controller*)level.entities[9].controller)->isActive());
+                if (doorActive && postLeverFrames < 25) postLeverFrames++;
                 Controller *c = Controller::first;
                 while (c) {
                     Controller *next = c->next;
+                    if (doorActive && postLeverFrames <= 20) ps3Log("[POST-LEVER F#%d] -> update entity=%d type=%d state=%d", postLeverFrames, c->entity, (int)c->getEntity().type, c->state);
                     c->update();
+                    if (doorActive) ps3Log("[POST-LEVER] OK");
                     c = next;
                 }
             } else {

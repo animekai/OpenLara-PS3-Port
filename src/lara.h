@@ -2159,9 +2159,11 @@ struct Lara : Character {
                     flags.once |= info.trigInfo.once;
                     
                     controller->activate();
+                    ps3Log("[TRIG] ACTIVATE OK entity=%d", cmd.args);
                     break;
                 }
-                case TR::Action::CAMERA_SWITCH : { ps3Log("[TRIG] CAM_SWITCH cam=%d", cmd.args);
+                case TR::Action::CAMERA_SWITCH : {
+                    ps3Log("[TRIG] CAM_SWITCH cam=%d", cmd.args); ps3Log("[TRIG] CAM_SWITCH cam=%d", cmd.args);
                     TR::FloorData::TriggerCommand &cam = info.trigCmd[cmdIndex++];
 
                     if (!level->cameras[cmd.args].flags.once) {
@@ -2177,6 +2179,7 @@ struct Lara : Character {
                             camera->speed  = cam.speed * 8;
 
                             level->cameras[camera->viewIndex].flags.once |= cam.once;
+                            ps3Log("[CAM-SWITCH] idx=%d room=%d pos=(%d,%d,%d) timer=%.1f", camera->viewIndex, level->cameras[camera->viewIndex].room, level->cameras[camera->viewIndex].x, level->cameras[camera->viewIndex].y, level->cameras[camera->viewIndex].z, camera->timer);
                         }
                     }
                     break;
@@ -3279,15 +3282,18 @@ struct Lara : Character {
                 default : ;
             }
 
+            if (state == STATE_SWITCH_DOWN) ps3Log("[LARA-SW] 1: antes Character::update");
             Character::update();
+            if (state == STATE_SWITCH_DOWN) ps3Log("[LARA-SW] 2: despues Character::update");
             for (int i = 0; i < COUNT(braid); i++) {
                 if (braid[i]) {
                     braid[i]->update();
                 }
             }
         }
-        
+        if (state == STATE_SWITCH_DOWN) ps3Log("[LARA-SW] 3: antes camera->update mode=%d idx=%d", (int)camera->mode, camera->viewIndex);
         camera->update();
+        if (state == STATE_SWITCH_DOWN) ps3Log("[LARA-SW] 4: despues camera->update");
 
         if (hitTimer > 0.0f) {
             hitTimer -= Core::deltaTime;
@@ -3507,7 +3513,7 @@ struct Lara : Character {
     }
 
     virtual void updatePosition() { // TODO: sphere / bbox collision
-        if (level->isCutsceneLevel())
+        if (level->isCutsceneLevel() || state == STATE_SWITCH_DOWN || state == STATE_SWITCH_UP)
             return;
 
         // tilt control
@@ -3562,7 +3568,7 @@ struct Lara : Character {
 
             if (!controller || controller->flags.invisible || !controller->isCollider()) continue;
 
-            if (e.type == TR::Entity::TRAP_DOOR_1 || e.type == TR::Entity::TRAP_DOOR_2) continue;
+            if (e.type == TR::Entity::TRAP_DOOR_1 || e.type == TR::Entity::TRAP_DOOR_2 || e.isDoor()) continue;
 
             if (e.isEnemy()) {
                 if (e.type != TR::Entity::ENEMY_REX && (controller->flags.active != TR::ACTIVE || ((Character*)controller)->health <= 0)) continue;

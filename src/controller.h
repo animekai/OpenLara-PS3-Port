@@ -992,8 +992,8 @@ struct Controller {
         d.x = 1024;
         d *= s;
 
-        int16 roomIndex = from.room;
-        while ((p.x - to.pos.x) * s < 0) {
+        int16 roomIndex = from.room; int stepsX = 0;
+        while ((p.x - to.pos.x) * s < 0) { if (++stepsX > 256) { ps3Log("[TRACE-X-LOOP] from=(%.0f,%.0f,%.0f) r=%d to=(%.0f,%.0f,%.0f) r=%d", from.pos.x, from.pos.y, from.pos.z, from.room, to.pos.x, to.pos.y, to.pos.z, to.room); to.pos = p; to.room = roomIndex; return 0; }
             if (level->isBlocked(roomIndex, p)) {
                 to.pos  = p;
                 to.room = roomIndex;
@@ -1030,8 +1030,8 @@ struct Controller {
         d.z = 1024;
         d *= s;
 
-        int16 roomIndex = from.room;
-        while ((p.z - to.pos.z) * s < 0) {
+        int16 roomIndex = from.room; int stepsZ = 0;
+        while ((p.z - to.pos.z) * s < 0) { if (++stepsZ > 256) { ps3Log("[TRACE-Z-LOOP] from=(%.0f,%.0f,%.0f) r=%d to=(%.0f,%.0f,%.0f) r=%d", from.pos.x, from.pos.y, from.pos.z, from.room, to.pos.x, to.pos.y, to.pos.z, to.room); to.pos = p; to.room = roomIndex; return 0; }
             if (level->isBlocked(roomIndex, p)) {
                 to.pos  = p;
                 to.room = roomIndex;

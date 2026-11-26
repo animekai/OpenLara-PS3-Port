@@ -2076,11 +2076,7 @@ namespace TR {
     };
 
     struct Flags {
-#if defined(__BIG_ENDIAN__) || defined(__PPC__) || defined(__PPC64__)
-        uint16 :2, active:5, once:1, :8;
-#else
         uint16 :8, once:1, active:5, :2;
-#endif
     };
 
     // internal mesh structure
@@ -4776,12 +4772,13 @@ namespace TR {
                 // alternateRoom/flags.value: leidos con stream.read(uint16&) que ya hace swap; NO volver a swapear
                 for (int v = 0; v < rm.data.vCount; v++) { rm.data.vertices[v].color.a = 255; } // unused_lighting ya swapeado por stream.read
                 swap16Arr(rm.data.sprites, rm.data.sCount * (sizeof(Room::Data::Sprite) / 2));
-                swap16Arr(rm.portals, rm.portalsCount * (sizeof(Room::Portal) / 2));
+                for (int p = 0; p < rm.portalsCount; p++) { rm.portals[p].roomIndex = swap16(rm.portals[p].roomIndex); swap16Arr(&rm.portals[p].normal, 3); swap16Arr(rm.portals[p].vertices, 12); }
                 // floorIndex/boxIndex ya swapeados por Stream::read(uint16&); NO volver a swapear
                 // lights: leidos con stream.read(escalar) que ya hace swap; NO volver a swapear
                 // meshes: leidos con stream.read(escalar) que ya hace swap; NO volver a swapear
             }
             LOG("fixEndianPC OK\n");
+            if (objectTexturesCount >= 4) ps3Log("[TEX] objTex=%d sprTex=%d boxes=%d overlaps=%d | tiles: [0]=%d [1]=%d [2]=%d [3]=%d", objectTexturesCount, spriteTexturesCount, boxesCount, overlapsCount, objectTextures[0].tile, objectTextures[1].tile, objectTextures[2].tile, objectTextures[3].tile);
         }
         void prepare() {
             if (version == VER_TR1_PC) fixEndianPC();

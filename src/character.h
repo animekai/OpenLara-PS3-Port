@@ -201,18 +201,24 @@ struct Character : Controller {
     }
 
     virtual void update() {
+        bool dbgSw = (state == 40);
+        if (dbgSw) ps3Log("[CHAR-SW] 1: updateRoom");
         updateRoom();
-
+        if (dbgSw) ps3Log("[CHAR-SW] 2: getStand");
         vec3 p = pos;
         lastInput = input;
         input = getInput();
         stand = getStand();
+        if (dbgSw) ps3Log("[CHAR-SW] 3: updateState");
         updateState();
+        if (dbgSw) ps3Log("[CHAR-SW] 4: Controller::update");
         Controller::update();
-
+        if (dbgSw) ps3Log("[CHAR-SW] 5: updateVelocity");
         if (flags.active) {
             updateVelocity();
+            if (dbgSw) ps3Log("[CHAR-SW] 6: updatePosition");
             updatePosition();
+            if (dbgSw) ps3Log("[CHAR-SW] 7: fin");
             if (p != pos) {
                 if (updateZone())
                     updateLights();

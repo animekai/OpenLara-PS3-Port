@@ -64,7 +64,30 @@ void inputUpdate() {
     Input::setJoyDown(0, jkSelect, pd.BTN_SELECT ? 1 : 0); Input::setJoyDown(0, jkStart, pd.BTN_START ? 1 : 0);
     bool hasAna = (pd.len >= 8) && !(pd.ANA_L_H == 0 && pd.ANA_L_V == 0 && pd.ANA_R_H == 0 && pd.ANA_R_V == 0); joyL = hasAna ? vec2(padAxis(pd.ANA_L_H), padAxis(pd.ANA_L_V)) : vec2(0.0f); joyR = hasAna ? vec2(padAxis(pd.ANA_R_H), padAxis(pd.ANA_R_V)) : vec2(0.0f);
     Input::setJoyPos(0, jkL, joyL); Input::setJoyPos(0, jkR, joyR);
+    static uint32 prevBtns = 0; static int prevLX = 0, prevLY = 0, prevRX = 0, prevRY = 0;
+    int curLX = int(joyL.x * 100), curLY = int(joyL.y * 100), curRX = int(joyR.x * 100), curRY = int(joyR.y * 100);
+    if (joyBtns != prevBtns) {
+        ps3Log("[PAD-BTN] 0x%04X -> 0x%04X (X=%d O=%d []=%d /\=%d U=%d D=%d L=%d R=%d L1=%d R1=%d)", prevBtns, joyBtns, pd.BTN_CROSS, pd.BTN_CIRCLE, pd.BTN_SQUARE, pd.BTN_TRIANGLE, pd.BTN_UP, pd.BTN_DOWN, pd.BTN_LEFT, pd.BTN_RIGHT, pd.BTN_L1, pd.BTN_R1);
+        prevBtns = joyBtns;
+    }
+    if (abs(curLX - prevLX) >= 5 || abs(curLY - prevLY) >= 5 || abs(curRX - prevRX) >= 5 || abs(curRY - prevRY) >= 5) {
+        ps3Log("[PAD-JOY] L=(%.2f,%.2f) R=(%.2f,%.2f) raw=(%d,%d,%d,%d)", joyL.x, joyL.y, joyR.x, joyR.y, pd.ANA_L_H, pd.ANA_L_V, pd.ANA_R_H, pd.ANA_R_V);
+        prevLX = curLX; prevLY = curLY; prevRX = curRX; prevRY = curRY;
+    }
     if (pd.BTN_L3 && pd.BTN_R3) ps3LogEnable();
+    static bool tpHeld = false;
+    if ((pd.BTN_L2 && pd.BTN_R2) || (pd.BTN_L1 && pd.BTN_R1)) {
+        if (!tpHeld && Game::level && Game::level->players) {
+            tpHeld = true;
+            Lara *l = *Game::level->players;
+            vec3 dst = (pd.BTN_L2 && pd.BTN_R2) ? vec3(51835.0f, 7680.0f, 57687.0f) : vec3(48229.0f, 4608.0f, 78420.0f);
+            float ang = (pd.BTN_L2 && pd.BTN_R2) ? (-PI * 0.5f) : (270.0f * DEG2RAD);
+            int r = l->getRoomByPos(dst);
+            if (r == TR::NO_ROOM) r = (pd.BTN_L2 && pd.BTN_R2) ? 14 : 33;
+            l->reset(r, dst, ang);
+            ps3Log("[TP] OK room=%d pos=(%.0f,%.0f,%.0f)", l->getRoomIndex(), l->pos.x, l->pos.y, l->pos.z);
+        }
+    } else tpHeld = false;
     if (pd.BTN_SELECT && pd.BTN_START) Core::isQuit = true;
 }
 void chkFile(const char *p) { struct stat s; ps3Log(stat(p, &s) == 0 ? "[FILE] OK %s (%ldB)" : "[FILE] FALTA %s", p, (long)s.st_size); }

@@ -746,6 +746,7 @@ struct Door : Controller {
     }
 
     void updateBlock(bool open) {
+        ps3Log("[DOOR] entity=%d updateBlock open=%d", entity, open ? 1 : 0);
         if (open) {
             block[0].reset(level);
             block[1].reset(level);
