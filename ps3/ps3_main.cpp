@@ -84,9 +84,7 @@ void inputUpdate() {
             Lara *l = *Game::level->players;
             vec3 dst = (pd.BTN_L2 && pd.BTN_R2) ? vec3(51835.0f, 7680.0f, 57687.0f) : vec3(48229.0f, 4608.0f, 78420.0f);
             float ang = (pd.BTN_L2 && pd.BTN_R2) ? (-PI * 0.5f) : (270.0f * DEG2RAD);
-            int r = l->getRoomByPos(dst);
-            ps3Log("[TP-DBG] dst=(%.0f,%.0f,%.0f) getRoomByPos=%d", dst.x, dst.y, dst.z, r);
-            if (r == TR::NO_ROOM) r = (pd.BTN_L2 && pd.BTN_R2) ? 14 : 33;
+            int r = (pd.BTN_L2 && pd.BTN_R2) ? 14 : 33;
             l->reset(r, dst, ang);
             ps3Log("[TP] OK room=%d pos=(%.0f,%.0f,%.0f)", l->getRoomIndex(), l->pos.x, l->pos.y, l->pos.z);
         }
@@ -104,9 +102,10 @@ int main(int argc, char **argv) {
     for (int y = 340; y < 380; y++) for (int x = 340; x < 940; x++) pix[y * WIN_W + x] = 0xFFD4AF37;
     gcmPresent(pix); ps3Log("[VIDEO-TEST] GCM nativo 1280x720 listo!");
     strcpy(contentDir, "/dev_hdd0/game/OPENLARA0/USRDIR/data/"); strcpy(cacheDir, "/dev_hdd0/openlara_ps3/"); strcpy(saveDir, cacheDir);
-    chkFile("/dev_hdd0/game/OPENLARA0/USRDIR/data/level/1/LEVEL1.PHD");
+    chkFile("/dev_hdd0/game/OPENLARA0/USRDIR/data/level/TITLE.PHD");
+    chkFile("/dev_hdd0/game/OPENLARA0/USRDIR/data/level/LEVEL1.PHD");
     timeval t; gettimeofday(&t, NULL); startTime = t.tv_sec; sndInit(); inputInit();
-    ps3SetStage("GAME_INIT"); Core::settings.audio.music = 20; Game::init((char*)"level/1/LEVEL1.PHD");
+    ps3SetStage("GAME_INIT"); Core::settings.audio.music = 20; Game::init((char*)"level/TITLE.PHD");
     ps3SetStage("MAIN_LOOP"); int fc = 0; Game::render(); gcmPresent(pix);
     while (!Core::isQuit) {
         inputUpdate();

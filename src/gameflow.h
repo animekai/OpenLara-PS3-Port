@@ -1046,7 +1046,7 @@ namespace TR {
 
     Version getGameVersion() {
         useEasyStart = true;
-        if (Stream::existsContent("DATA/GYM.PHD") || Stream::existsContent("GYM.PHD"))
+        if (Stream::existsContent("levels/GYM.PHD") || Stream::existsContent("GYM.PHD"))
             return VER_TR1_PC;
         if (Stream::existsContent("PSXDATA/GYM.PSX"))
             return VER_TR1_PSX;
@@ -1075,7 +1075,7 @@ namespace TR {
         if (useEasyStart) {
             switch (version) {
                 case VER_TR1_PC  :
-                    sprintf(dst, "DATA/%s.PHD", LEVEL_INFO[id].name);
+                    sprintf(dst, "levels/%s.PHD", LEVEL_INFO[id].name);
                     if (Stream::existsContent(dst)) break;
                     sprintf(dst, "%s.PHD", LEVEL_INFO[id].name);
                     break;
@@ -1097,9 +1097,6 @@ namespace TR {
             }
         } else {
             strcpy(dst, "level/");
-            if ((version & VER_TR1) || version == VER_UNKNOWN) strcat(dst, "1/");
-            if (version & VER_TR2) strcat(dst, "2/");
-            if (version & VER_TR3) strcat(dst, "3/");
             strcat(dst, LEVEL_INFO[id].name);
 
             #ifdef _OS_WEB
@@ -1114,32 +1111,32 @@ namespace TR {
                     case VER_TR3_PSX : strcat(dst, ".PSX"); break;
                     case VER_TR1_SAT : strcat(dst, ".SAT"); break;
                     case VER_UNKNOWN :
-                        if (Stream::existsContent("level/1/TITLE.PSX")) {
-                            strcpy(dst, "level/1/TITLE.PSX");
+                        if (Stream::existsContent("TITLE.PSX")) {
+                            strcpy(dst, "TITLE.PSX");
                             return;
                         }
-                        if (Stream::existsContent("level/1/TITLE.PHD")) {
-                            strcpy(dst, "level/1/TITLE.PHD");
+                        if (Stream::existsContent("TITLE.PHD")) {
+                            strcpy(dst, "TITLE.PHD");
                             return;
                         }
-                        if (Stream::existsContent("level/1/TITLE.SAT")) {
-                            strcpy(dst, "level/1/TITLE.SAT");
+                        if (Stream::existsContent("TITLE.SAT")) {
+                            strcpy(dst, "TITLE.SAT");
                             return;
                         }
-                        if (Stream::existsContent("level/2/TITLE.TR2")) {
-                            strcpy(dst, "level/2/TITLE.TR2");
+                        if (Stream::existsContent("TITLE.TR2")) {
+                            strcpy(dst, "TITLE.TR2");
                             return;
                         }
-                        if (Stream::existsContent("level/2/TITLE.PSX")) {
-                            strcpy(dst, "level/2/TITLE.PSX");
+                        if (Stream::existsContent("TITLE.PSX")) {
+                            strcpy(dst, "TITLE.PSX");
                             return;
                         }
-                        if (Stream::existsContent("level/3/TITLE.TR2")) {
-                            strcpy(dst, "level/3/TITLE.TR2");
+                        if (Stream::existsContent("TITLE.TR2")) {
+                            strcpy(dst, "TITLE.TR2");
                             return;
                         }
-                        if (Stream::existsContent("level/3/TITLE.PSX")) {
-                            strcpy(dst, "level/3/TITLE.PSX");
+                        if (Stream::existsContent("TITLE.PSX")) {
+                            strcpy(dst, "TITLE.PSX");
                             return;
                         }
                         ASSERT(false); //
@@ -1154,7 +1151,7 @@ namespace TR {
         if (version == VER_TR2_PC) {
             CHECK_FILE("data/MAIN.SFX");    // PC
             CHECK_FILE("MAIN.SFX");         // Android
-            return "audio/2/MAIN.SFX";      // Web
+            return "audio/MAIN.SFX";      // Web
         }
 
         if (version == VER_TR3_PC) {
@@ -1245,7 +1242,7 @@ namespace TR {
         }
 
         sprintf(title, "track_%s", str);
-        if (!checkTrack("", title) && !checkTrack("audio/1/", title) && !checkTrack("audio/", title)) {
+        if (!checkTrack("", title) && !checkTrack("audio/", title) && !checkTrack("audio/", title)) {
             return false;
         }
 
@@ -1276,13 +1273,16 @@ namespace TR {
                 case VER_TR1_SAT :
                 case VER_TR1_PC  :
                 case VER_TR1_PSX :
-                    sprintf(title, "track_%02d", track);
-                    if (!checkTrack("", title) && !checkTrack("audio/1/", title) && !checkTrack("audio/", title)) {
-                        track = remapTrack(version, track);
-                        sprintf(title, "%03d", track);
-                        if (!checkTrack("", title) && !checkTrack("audio/1/", title) && !checkTrack("audio/", title)) {
-                            callback(NULL, userData);
-                            return;
+                    sprintf(title, "%03d", track);
+                    if (!checkTrack("", title) && !checkTrack("audio/", title) && !checkTrack("audio/", title)) {
+                        sprintf(title, "track_%02d", track);
+                        if (!checkTrack("", title) && !checkTrack("audio/", title) && !checkTrack("audio/", title)) {
+                            track = remapTrack(version, track);
+                            sprintf(title, "%03d", track);
+                            if (!checkTrack("", title) && !checkTrack("audio/", title) && !checkTrack("audio/", title)) {
+                                callback(NULL, userData);
+                                return;
+                            }
                         }
                     }
                     break;
@@ -1294,7 +1294,7 @@ namespace TR {
                     //}
                     track = remapTrack(version, track);
                     sprintf(title, "track_%02d", track);
-                    if (!checkTrack("", title) && !checkTrack("audio/2/", title) && !checkTrack("audio/", title)) {
+                    if (!checkTrack("", title) && !checkTrack("audio/", title) && !checkTrack("audio/", title)) {
                         callback(NULL, userData);
                         return;
                     }
@@ -1316,28 +1316,22 @@ namespace TR {
                 case VER_TR1_SAT :
                 case VER_TR1_PC  :
                 case VER_TR1_PSX : {
-                    if (TR::checkWebDub(version, track)) {
-                        const char *lng[] = { LANG_PREFIXES };
-                        sprintf(title, "audio/1/track_%02d%s.ogg", track, lng[Core::settings.audio.language]);
-                    } else {
-                        if (TR::getSubs(version, track) != STR_EMPTY) {
-                            sprintf(title, "audio/1/track_%02d_EN.ogg", track);
-                        } else {
-                            sprintf(title, "audio/1/track_%02d.ogg", track);
-                        }
-                    }
+                    sprintf(title, "audio/%03d.ogg", track);
                 #ifndef _OS_WEB
                     if (Stream::existsContent(title))
                         break;
+                    sprintf(title, "audio/track_%02d.ogg", track);
+                    if (Stream::existsContent(title))
+                        break;
                     track = remapTrack(version, track);
-                    sprintf(title, "audio/1/%03d.ogg", track);
+                    sprintf(title, "audio/%03d.ogg", track);
                 #endif
                     break;
                 }
                 case VER_TR2_PC  :
                 case VER_TR2_PSX :
                     track = remapTrack(version, track);
-                    sprintf(title, "audio/2/track_%02d.ogg", track);
+                    sprintf(title, "audio/%03d.ogg", track);
                     break;
                 case VER_TR3_PC  :
                 case VER_TR3_PSX :
@@ -1365,12 +1359,12 @@ namespace TR {
                 CHECK_FILE("DELDATA/JAPTIT.RAW");   // PSX JAP
                 CHECK_FILE("BINDATA/USATIT.BIN");   // SEGA
                 CHECK_FILE("BINDATA/TITLE1.BIN");   // SEGA
-                return "level/1/AMERTIT.PNG";       // WEB
+                return "AMERTIT.PNG";       // WEB
             case LVL_TR1_GYM :
                 CHECK_FILE("DELDATA/GYMLOAD.RAW");
                 CHECK_FILE("BINDATA/GYM224.BIN");
                 CHECK_FILE("BINDATA/GYM.BIN");
-                return "level/1/GYMLOAD.PNG";
+                return "GYMLOAD.PNG";
             case LVL_TR1_1  :
             case LVL_TR1_2  :
             case LVL_TR1_3A :
@@ -1378,7 +1372,7 @@ namespace TR {
                 return NULL; CHECK_FILE("DELDATA/AZTECLOA.RAW");
                 CHECK_FILE("BINDATA/AZTEC224.BIN");
                 CHECK_FILE("BINDATA/AZTEC.BIN");
-                return "level/1/AZTECLOA.PNG";
+                return "AZTECLOA.PNG";
             case LVL_TR1_4  :
             case LVL_TR1_5  :
             case LVL_TR1_6  :
@@ -1387,21 +1381,21 @@ namespace TR {
                 CHECK_FILE("DELDATA/GREEKLOA.RAW");
                 CHECK_FILE("BINDATA/GREEK224.BIN");
                 CHECK_FILE("BINDATA/GREEK.BIN");
-                return "level/1/GREEKLOA.PNG";
+                return "GREEKLOA.PNG";
             case LVL_TR1_8A :
             case LVL_TR1_8B :
             case LVL_TR1_8C :
                 CHECK_FILE("DELDATA/EGYPTLOA.RAW");
                 CHECK_FILE("BINDATA/EGYPT224.BIN");
                 CHECK_FILE("BINDATA/EGYPT.BIN");
-                return "level/1/EGYPTLOA.PNG";
+                return "EGYPTLOA.PNG";
             case LVL_TR1_10A :
             case LVL_TR1_10B :
             case LVL_TR1_10C :
                 CHECK_FILE("DELDATA/ATLANLOA.RAW");
                 CHECK_FILE("BINDATA/ATLAN224.BIN");
                 CHECK_FILE("BINDATA/ATLAN.BIN");
-                return "level/1/ATLANLOA.PNG";
+                return "ATLANLOA.PNG";
         // TR2
             case LVL_TR2_TITLE :
                 CHECK_FILE("TITLE.png");            // Android
@@ -1409,62 +1403,62 @@ namespace TR {
                 CHECK_FILE("pix/title.pcx");        // PC
                 CHECK_FILE("PIXUS/TITLEUS.RAW");    // PSX US
                 CHECK_FILE("PIXJAP/TITLEJAP.RAW");  // PSX US
-                return "level/2/TITLEUS.PNG";       // WEB
+                return "TITLEUS.PNG";       // WEB
             case LVL_TR2_ASSAULT :
             case LVL_TR2_HOUSE   :
                 CHECK_FILE("PIX/MANSION.RAW");
-                return "level/2/MANSION.PNG";
+                return "MANSION.PNG";
             case LVL_TR2_WALL     :
             case LVL_TR2_EMPRTOMB :
             case LVL_TR2_FLOATING :
             case LVL_TR2_XIAN     :
                 CHECK_FILE("PIX/CHINA.RAW");
-                return "level/2/CHINA.PNG";
+                return "CHINA.PNG";
             case LVL_TR2_BOAT   :
             case LVL_TR2_VENICE :
             case LVL_TR2_OPERA  :
                 CHECK_FILE("PIX/VENICE.RAW");
-                return "level/2/VENICE.PNG";
+                return "VENICE.PNG";
             case LVL_TR2_RIG      :
             case LVL_TR2_PLATFORM :
                 CHECK_FILE("PIX/RIG.RAW");
-                return "level/2/RIG.PNG";
+                return "RIG.PNG";
             case LVL_TR2_UNWATER :
             case LVL_TR2_KEEL    :
             case LVL_TR2_LIVING  :
             case LVL_TR2_DECK    :
                 CHECK_FILE("PIX/TITAN.RAW");
-                return "level/2/TITAN.PNG";
+                return "TITAN.PNG";
             case LVL_TR2_SKIDOO   :
             case LVL_TR2_MONASTRY :
             case LVL_TR2_CATACOMB :
             case LVL_TR2_ICECAVE  :
                 CHECK_FILE("PIX/TIBET.RAW");
-                return "level/2/TIBET.PNG";
+                return "TIBET.PNG";
         // TR3
             case LVL_TR3_TITLE :
                 CHECK_FILE("pix/TITLEUK.BMP");      // PC
                 CHECK_FILE("PIXUS/TITLEUS.RAW");    // PSX
                 CHECK_FILE("PIXJAP/TITLEJAP.RAW");  // PSX
-                return "level/3/TITLEUK.PNG";       // WEB
+                return "TITLEUK.PNG";       // WEB
             case LVL_TR3_HOUSE  :
                 CHECK_FILE("pix/HOUSE.BMP");
                 CHECK_FILE("PIX/HOUSE.RAW");
-                return "level/3/HOUSE.PNG";
+                return "HOUSE.PNG";
             case LVL_TR3_JUNGLE   :
             case LVL_TR3_TEMPLE   :
             case LVL_TR3_QUADCHAS :
             case LVL_TR3_TONYBOSS :
                 CHECK_FILE("pix/INDIA.BMP");
                 CHECK_FILE("PIX/INDIA.RAW");
-                return "level/3/INDIA.PNG";
+                return "INDIA.PNG";
             case LVL_TR3_SHORE   :
             case LVL_TR3_CRASH   :
             case LVL_TR3_RAPIDS  :
             case LVL_TR3_TRIBOSS :
                 CHECK_FILE("pix/SOUTHPAC.BMP");
                 CHECK_FILE("PIX/SOUTHPAC.RAW");
-                return "level/3/SOUTHPAC.PNG";
+                return "SOUTHPAC.PNG";
             case LVL_TR3_ROOFS  :
             case LVL_TR3_SEWER  :
             case LVL_TR3_TOWER  :
@@ -1472,20 +1466,20 @@ namespace TR {
             case LVL_TR3_STPAUL :
                 CHECK_FILE("pix/LONDON.BMP");
                 CHECK_FILE("PIX/LONDON.RAW");
-                return "level/3/LONDON.PNG";
+                return "LONDON.PNG";
             case LVL_TR3_NEVADA   :
             case LVL_TR3_COMPOUND :
             case LVL_TR3_AREA51   :
                 CHECK_FILE("pix/NEVADA.BMP");
                 CHECK_FILE("PIX/NEVADA.RAW");
-                return "level/3/NEVADA.PNG";
+                return "NEVADA.PNG";
             case LVL_TR3_ANTARC  :
             case LVL_TR3_MINES   :
             case LVL_TR3_CITY    :
             case LVL_TR3_CHAMBER :
                 CHECK_FILE("pix/ANTARC.BMP");
                 CHECK_FILE("PIX/ANTARC.RAW");
-                return "level/3/ANTARC.PNG";
+                return "ANTARC.PNG";
 
             default : return NULL;
         }
